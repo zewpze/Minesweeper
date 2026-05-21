@@ -12,124 +12,181 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo">
-          <span class="logo-icon">💣</span>
-          <span class="logo-text">Z뢰찾기</span>
+
+  <!-- ══════════════════════════════
+       PAGE: HOME
+       ══════════════════════════════ -->
+  <div class="page" id="pageHome">
+    <div class="home-bg-glow"></div>
+
+    <div class="home-content">
+      <!-- Logo -->
+      <div class="home-logo">
+        <span class="home-logo-icon">💣</span>
+        <h1 class="home-logo-text">지뢰찾기</h1>
+        <p class="home-logo-sub">터치로 즐기는 클래식 마인스위퍼</p>
+      </div>
+
+      <!-- Difficulty select -->
+      <div class="home-section">
+        <p class="home-section-label">난이도 선택</p>
+        <div class="home-difficulty-grid">
+          <button class="home-diff-btn active" id="homeDiffEasy" data-difficulty="easy">
+            <span class="diff-emoji">🌱</span>
+            <span class="diff-name">초급</span>
+            <span class="diff-info">9×9 · 지뢰 10개</span>
+          </button>
+          <button class="home-diff-btn" id="homeDiffMedium" data-difficulty="medium">
+            <span class="diff-emoji">⚡</span>
+            <span class="diff-name">중급</span>
+            <span class="diff-info">16×14 · 지뢰 35개</span>
+          </button>
+          <button class="home-diff-btn" id="homeDiffHard" data-difficulty="hard">
+            <span class="diff-emoji">💀</span>
+            <span class="diff-name">고급</span>
+            <span class="diff-info">22×14 · 지뢰 60개</span>
+          </button>
         </div>
-        <button class="settings-btn" id="settingsBtn" aria-label="설정">⚙️</button>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="home-actions">
+        <button class="home-play-btn" id="homePlayBtn">
+          <span class="play-btn-icon">🎮</span>
+          <span class="play-btn-text">게임 시작</span>
+        </button>
+        <button class="home-records-btn" id="homeRecordsBtn">
+          <span>🏆</span> 기록 보기
+        </button>
+      </div>
+
+      <!-- Mini best times preview -->
+      <div class="home-best-row">
+        <div class="home-best-item">
+          <span class="home-best-label">초급</span>
+          <span class="home-best-time" id="homeBestEasy">--</span>
+        </div>
+        <div class="home-best-sep">·</div>
+        <div class="home-best-item">
+          <span class="home-best-label">중급</span>
+          <span class="home-best-time" id="homeBestMedium">--</span>
+        </div>
+        <div class="home-best-sep">·</div>
+        <div class="home-best-item">
+          <span class="home-best-label">고급</span>
+          <span class="home-best-time" id="homeBestHard">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings button -->
+    <button class="home-settings-btn" id="settingsBtn" aria-label="설정">⚙️</button>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       PAGE: GAME
+       ══════════════════════════════ -->
+  <div class="page" id="pageGame" hidden>
+
+    <!-- Game Header -->
+    <header class="game-header">
+      <button class="back-btn" id="gameBackBtn" aria-label="홈으로">‹</button>
+
+      <!-- Stats -->
+      <div class="game-stats">
+        <div class="game-stat">
+          <span class="game-stat-icon">🚩</span>
+          <span class="game-stat-value" id="flagCount">0</span>
+          <span class="game-stat-slash">/ <span id="totalMines">0</span></span>
+        </div>
+        <button class="reset-btn" id="resetBtn" aria-label="새 게임">
+          <span class="reset-icon" id="resetIcon">😊</span>
+        </button>
+        <div class="game-stat right">
+          <span class="game-stat-icon">⏱️</span>
+          <span class="game-stat-value" id="timer">000</span>
+        </div>
+      </div>
+
+      <!-- Difficulty tabs -->
+      <div class="game-diff-tabs">
+        <button class="gdiff-btn active" id="tab-easy"   data-difficulty="easy">초급</button>
+        <button class="gdiff-btn"        id="tab-medium" data-difficulty="medium">중급</button>
+        <button class="gdiff-btn"        id="tab-hard"   data-difficulty="hard">고급</button>
       </div>
     </header>
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-      <div class="stat-item" id="mineCounter">
-        <span class="stat-icon">🚩</span>
-        <span class="stat-value" id="flagCount">0</span>
-        <span class="stat-label">/ <span id="totalMines">0</span></span>
+    <!-- Mode Toggle -->
+    <div class="mode-row">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeReveal" aria-label="열기 모드">
+          <span>👆</span> 열기
+        </button>
+        <div class="mode-slider" id="modeSlider"></div>
+        <button class="mode-btn" id="modeFlag" aria-label="깃발 모드">
+          <span>🚩</span> 깃발
+        </button>
       </div>
-      <button class="reset-btn" id="resetBtn" aria-label="새 게임">
-        <span class="reset-icon" id="resetIcon">😊</span>
-      </button>
-      <div class="stat-item">
-        <span class="stat-icon">⏱️</span>
-        <span class="stat-value" id="timer">000</span>
-      </div>
+      <span class="mode-hint" id="modeHint">탭: 열기 / 길게 탭: 깃발</span>
     </div>
 
-    <!-- ══ GAME VIEW ══ -->
-    <div id="gameView">
-      <!-- Mode Toggle -->
-      <div class="mode-toggle-wrapper">
-        <div class="mode-toggle">
-          <button class="mode-btn active" id="modeReveal" aria-label="열기 모드">
-            <span>👆</span> 열기
-          </button>
-          <div class="mode-slider" id="modeSlider"></div>
-          <button class="mode-btn" id="modeFlag" aria-label="깃발 모드">
-            <span>🚩</span> 깃발
-          </button>
-        </div>
+    <!-- Board fills remaining space -->
+    <main class="board-container">
+      <div class="board-scroll">
+        <div class="board" id="board" role="grid" aria-label="지뢰찾기 게임판"></div>
       </div>
+    </main>
+  </div>
 
-      <!-- Game Board -->
-      <main class="board-container">
-        <div class="board-scroll">
-          <div class="board" id="board" role="grid" aria-label="지뢰찾기 게임판"></div>
-        </div>
-      </main>
 
-      <!-- Mini Best Records -->
-      <section class="records-section">
-        <h2 class="records-title">🏆 최고 기록</h2>
-        <div class="records-grid">
-          <div class="record-item">
-            <span class="record-level">초급</span>
-            <span class="record-time" id="record-easy">--</span>
-          </div>
-          <div class="record-item">
-            <span class="record-level">중급</span>
-            <span class="record-time" id="record-medium">--</span>
-          </div>
-          <div class="record-item">
-            <span class="record-level">고급</span>
-            <span class="record-time" id="record-hard">--</span>
-          </div>
-        </div>
-      </section>
-      
-    </div><!-- end #gameView -->
-    <!-- Difficulty Tabs -->
-    <div class="difficulty-tabs">
-      <button class="tab-btn active" id="tab-easy" data-difficulty="easy">초급</button>
-      <button class="tab-btn" id="tab-medium" data-difficulty="medium">중급</button>
-      <button class="tab-btn" id="tab-hard" data-difficulty="hard">고급</button>
+  <!-- ══════════════════════════════
+       PAGE: RECORDS
+       ══════════════════════════════ -->
+  <div class="page" id="pageRecords" hidden>
+
+    <header class="records-header">
+      <button class="back-btn" id="recordsBackBtn" aria-label="홈으로">‹</button>
+      <h2 class="records-header-title">🏆 기록</h2>
+      <button class="icon-btn" id="clearRecords" aria-label="기록 초기화" title="기록 초기화">🗑️</button>
+    </header>
+
+    <!-- Scoreboard difficulty tabs -->
+    <div class="scoreboard-tabs">
+      <button class="scoreboard-tab active" data-sdiff="easy"   id="stab-easy">초급</button>
+      <button class="scoreboard-tab"        data-sdiff="medium" id="stab-medium">중급</button>
+      <button class="scoreboard-tab"        data-sdiff="hard"   id="stab-hard">고급</button>
     </div>
 
-    <!-- View Toggle: 게임 / 기록 -->
-    <div class="view-toggle-bar">
-      <button class="view-tab active" id="viewGameTab">🎮 게임</button>
-      <button class="view-tab" id="viewRecordsTab">🏆 기록</button>
-    </div>
-
-    <!-- ══ RECORDS VIEW ══ -->
-    <div id="recordsPanel" class="records-panel" hidden>
-      <!-- Scoreboard difficulty sub-tabs -->
-      <div class="scoreboard-tabs">
-        <button class="scoreboard-tab active" data-sdiff="easy" id="stab-easy">초급</button>
-        <button class="scoreboard-tab" data-sdiff="medium" id="stab-medium">중급</button>
-        <button class="scoreboard-tab" data-sdiff="hard" id="stab-hard">고급</button>
-      </div>
-
-      <!-- Empty state -->
+    <!-- Scrollable list area -->
+    <div class="scoreboard-body">
       <div class="scoreboard-empty" id="scoreboardEmpty" hidden>
         <div class="empty-icon">🏆</div>
         <p class="empty-text">아직 기록이 없어요<br>게임을 플레이해보세요!</p>
       </div>
-
-      <!-- Scoreboard list -->
       <ol class="scoreboard-list" id="scoreboardList" aria-label="순위 목록"></ol>
-    </div><!-- end #recordsPanel -->
-
-
+    </div>
   </div>
 
-  <!-- Overlay: Win/Lose -->
+
+  <!-- ══════════════════════════════
+       OVERLAY: Win / Lose
+       ══════════════════════════════ -->
   <div class="overlay" id="overlay" aria-hidden="true">
     <div class="overlay-card" id="overlayCard">
-      <div class="overlay-emoji" id="overlayEmoji"></div>
-      <h2 class="overlay-title" id="overlayTitle"></h2>
-      <p class="overlay-subtitle" id="overlaySubtitle"></p>
-      <div class="overlay-stats" id="overlayStats"></div>
-      <button class="overlay-btn" id="overlayBtn">다시 시작</button>
+      <div class="overlay-emoji"    id="overlayEmoji"></div>
+      <h2 class="overlay-title"    id="overlayTitle"></h2>
+      <p  class="overlay-subtitle" id="overlaySubtitle"></p>
+      <div class="overlay-stats"   id="overlayStats"></div>
+      <button class="overlay-btn"   id="overlayBtn">다시 시작</button>
       <button class="overlay-close" id="overlayClose">✕</button>
     </div>
   </div>
 
-  <!-- Settings Modal -->
+
+  <!-- ══════════════════════════════
+       SETTINGS MODAL
+       ══════════════════════════════ -->
   <div class="settings-modal" id="settingsModal" aria-hidden="true">
     <div class="settings-card">
       <div class="settings-header">
@@ -154,12 +211,11 @@
         <div class="settings-label">
           <span>색상 테마</span>
           <div class="theme-options">
-            <button class="theme-swatch active" data-theme="purple" style="background: linear-gradient(135deg,#7c3aed,#2563eb)" id="theme-purple"></button>
-            <button class="theme-swatch" data-theme="teal" style="background: linear-gradient(135deg,#0d9488,#0ea5e9)" id="theme-teal"></button>
-            <button class="theme-swatch" data-theme="dark" style="background: linear-gradient(135deg,#1e293b,#334155)" id="theme-dark"></button>
+            <button class="theme-swatch active" data-theme="purple" style="background:linear-gradient(135deg,#7c3aed,#2563eb)" id="theme-purple"></button>
+            <button class="theme-swatch"        data-theme="teal"   style="background:linear-gradient(135deg,#0d9488,#0ea5e9)" id="theme-teal"></button>
+            <button class="theme-swatch"        data-theme="dark"   style="background:linear-gradient(135deg,#1e293b,#334155)" id="theme-dark"></button>
           </div>
         </div>
-        <button class="clear-records-btn" id="clearRecords">기록 초기화</button>
       </div>
     </div>
   </div>

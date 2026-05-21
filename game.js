@@ -13,34 +13,56 @@ const DIFFICULTIES = {
    Game State
    ======================== */
 let state = {
-  difficulty: 'easy',
-  board: [],         // 2D array of cell objects
-  rows: 0,
-  cols: 0,
-  mines: 0,
-  flagCount: 0,
-  revealed: 0,
-  status: 'idle',   // idle | playing | won | lost
-  startTime: null,
-  timerInterval: null,
+  difficulty:     'easy',
+  board:          [],
+  rows:           0,
+  cols:           0,
+  mines:          0,
+  flagCount:      0,
+  revealed:       0,
+  status:         'idle',  // idle | playing | won | lost
+  startTime:      null,
+  timerInterval:  null,
   elapsedSeconds: 0,
-  mode: 'reveal',   // reveal | flag
-  vibration: true,
-  animation: true,
+  mode:           'reveal', // reveal | flag
+  vibration:      true,
+  animation:      true,
   longPressTimer: null,
-  longPressCell: null,
+  longPressCell:  null,
 };
 
 /* ========================
    DOM References
    ======================== */
 const dom = {
+  // Pages
+  pageHome:        document.getElementById('pageHome'),
+  pageGame:        document.getElementById('pageGame'),
+  pageRecords:     document.getElementById('pageRecords'),
+  // Home
+  homePlayBtn:     document.getElementById('homePlayBtn'),
+  homeRecordsBtn:  document.getElementById('homeRecordsBtn'),
+  homeBestEasy:    document.getElementById('homeBestEasy'),
+  homeBestMedium:  document.getElementById('homeBestMedium'),
+  homeBestHard:    document.getElementById('homeBestHard'),
+  // Game
+  gameBackBtn:     document.getElementById('gameBackBtn'),
   board:           document.getElementById('board'),
   flagCount:       document.getElementById('flagCount'),
   totalMines:      document.getElementById('totalMines'),
   timer:           document.getElementById('timer'),
   resetBtn:        document.getElementById('resetBtn'),
   resetIcon:       document.getElementById('resetIcon'),
+  modeReveal:      document.getElementById('modeReveal'),
+  modeFlag:        document.getElementById('modeFlag'),
+  modeSlider:      document.getElementById('modeSlider'),
+  modeHint:        document.getElementById('modeHint'),
+  // Records
+  recordsBackBtn:  document.getElementById('recordsBackBtn'),
+  clearRecords:    document.getElementById('clearRecords'),
+  scoreboardList:  document.getElementById('scoreboardList'),
+  scoreboardEmpty: document.getElementById('scoreboardEmpty'),
+  // Overlay
   overlay:         document.getElementById('overlay'),
   overlayEmoji:    document.getElementById('overlayEmoji'),
   overlayTitle:    document.getElementById('overlayTitle'),
@@ -48,28 +70,57 @@ const dom = {
   overlayStats:    document.getElementById('overlayStats'),
   overlayBtn:      document.getElementById('overlayBtn'),
   overlayClose:    document.getElementById('overlayClose'),
+  // Settings
   settingsBtn:     document.getElementById('settingsBtn'),
   settingsModal:   document.getElementById('settingsModal'),
   settingsClose:   document.getElementById('settingsClose'),
-  modeReveal:      document.getElementById('modeReveal'),
-  modeFlag:        document.getElementById('modeFlag'),
-  modeSlider:      document.getElementById('modeSlider'),
-  modeHint:        document.getElementById('modeHint'),
   vibrationToggle: document.getElementById('vibrationToggle'),
   animationToggle: document.getElementById('animationToggle'),
-  clearRecords:    document.getElementById('clearRecords'),
-  // View toggle
-  viewGameTab:     document.getElementById('viewGameTab'),
-  viewRecordsTab:  document.getElementById('viewRecordsTab'),
-  gameView:        document.getElementById('gameView'),
-  recordsPanel:    document.getElementById('recordsPanel'),
-  // Scoreboard
-  scoreboardList:  document.getElementById('scoreboardList'),
-  scoreboardEmpty: document.getElementById('scoreboardEmpty'),
 };
 
-// Which difficulty is shown in records panel
 let scoreboardDiff = 'easy';
+
+/* ========================
+   Page Navigation
+   ======================== */
+// 'home' | 'game' | 'records'
+let currentPage = 'home';
+
+function navigateTo(page) {
+  if (page === currentPage) return;
+
+  const pageEls = { home: dom.pageHome, game: dom.pageGame, records: dom.pageRecords };
+  const fromEl = pageEls[currentPage];
+  const toEl   = pageEls[page];
+
+  const goingForward = (currentPage === 'home');
+
+  // Show destination
+  toEl.hidden = false;
+  toEl.classList.remove('slide-in', 'slide-out', 'slide-back-in', 'slide-back-out');
+
+  if (goingForward) {
+    fromEl.classList.add('slide-out');
+    toEl.classList.add('slide-in');
+  } else {
+    fromEl.classList.add('slide-back-out');
+    toEl.classList.add('slide-back-in');
+  }
+
+  // Hide source after animation
+  const duration = 350;
+  setTimeout(() => {
+    fromEl.hidden = true;
+    fromEl.classList.remove('slide-out', 'slide-back-out');
+    toEl.classList.remove('slide-in', 'slide-back-in');
+  }, duration);
+
+  currentPage = page;
+
+  // Side effects
+  if (page === 'records') renderScoreboard(scoreboardDiff);
+  if (page === 'home')     renderHomeBests();
+}
 
 /* ========================
    Records  (v2: per-difficulty list, max 10)
@@ -79,72 +130,66 @@ const RECORDS_KEY = 'ms_records_v2';
 function getRecords() {
   try {
     const raw = JSON.parse(localStorage.getItem(RECORDS_KEY) || '{}');
-    // Ensure all keys exist
-    ['easy','medium','hard'].forEach(d => { if (!raw[d]) raw[d] = []; });
+    ['easy', 'medium', 'hard'].forEach(d => { if (!raw[d]) raw[d] = []; });
     return raw;
   } catch { return { easy: [], medium: [], hard: [] }; }
 }
 
 /**
- * Save a new entry. Returns true if it's the best time ever.
- * Each entry: { time: number, date: string, id: number }
+ * Save entry, keep top 10. Returns true if new best.
+ * Entry: { time, date, id }
  */
 function saveRecord(difficulty, seconds) {
-  const records = getRecords();
-  const list = records[difficulty];
+  const records  = getRecords();
+  const list     = records[difficulty];
   const prevBest = list.length > 0 ? list[0].time : Infinity;
 
-  const now = new Date();
+  const now  = new Date();
   const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
   list.push({ time: seconds, date, id: Date.now() });
   list.sort((a, b) => a.time - b.time);
   records[difficulty] = list.slice(0, 10);
 
   localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
-  return seconds <= prevBest;  // new best?
+  return seconds <= prevBest;
 }
 
-/** Update mini best-time bar at bottom of game view */
-function renderRecords() {
+/** Render best-times on home page */
+function renderHomeBests() {
   const records = getRecords();
-  ['easy', 'medium', 'hard'].forEach(d => {
-    const el = document.getElementById(`record-${d}`);
-    const best = records[d][0];
-    el.textContent = best ? formatTime(best.time) : '--';
-    el.classList.remove('new-record');
-  });
+  dom.homeBestEasy.textContent   = records.easy[0]   ? formatTime(records.easy[0].time)   : '--';
+  dom.homeBestMedium.textContent = records.medium[0] ? formatTime(records.medium[0].time) : '--';
+  dom.homeBestHard.textContent   = records.hard[0]   ? formatTime(records.hard[0].time)   : '--';
 }
 
-/** Render full scoreboard for given difficulty */
+/** Render full scoreboard */
 function renderScoreboard(diff) {
   scoreboardDiff = diff;
   const records = getRecords();
-  const list = records[diff] || [];
+  const list    = records[diff] || [];
 
-  // Update sub-tab active state
   document.querySelectorAll('.scoreboard-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.sdiff === diff);
   });
 
   if (list.length === 0) {
     dom.scoreboardEmpty.hidden = false;
-    dom.scoreboardList.hidden = true;
+    dom.scoreboardList.hidden  = true;
     return;
   }
 
   dom.scoreboardEmpty.hidden = true;
-  dom.scoreboardList.hidden = false;
+  dom.scoreboardList.hidden  = false;
   dom.scoreboardList.innerHTML = '';
 
   const MEDALS = ['👑', '🥈', '🥉'];
 
   list.forEach((entry, i) => {
     const rank = i + 1;
-    const li = document.createElement('li');
+    const li   = document.createElement('li');
     li.className = `scoreboard-item${rank <= 3 ? ` rank-${rank}` : ''}`;
     li.style.animationDelay = `${i * 45}ms`;
 
-    // Rank badge
     const rankEl = document.createElement('div');
     rankEl.className = 'scoreboard-rank';
     if (rank <= 3) {
@@ -155,7 +200,6 @@ function renderScoreboard(diff) {
       rankEl.textContent = rank;
     }
 
-    // Info block
     const infoEl = document.createElement('div');
     infoEl.className = 'scoreboard-info';
     infoEl.innerHTML = `
@@ -169,21 +213,11 @@ function renderScoreboard(diff) {
   });
 }
 
-/** Switch between 게임 view and 기록 view */
-function setView(view) {
-  const isGame = view === 'game';
-  dom.gameView.hidden = !isGame;
-  dom.recordsPanel.hidden = isGame;
-  dom.viewGameTab.classList.toggle('active', isGame);
-  dom.viewRecordsTab.classList.toggle('active', !isGame);
-  if (!isGame) renderScoreboard(scoreboardDiff);
-}
-
 /* ========================
    Timer
    ======================== */
 function formatTime(s) {
-  const m = Math.floor(s / 60);
+  const m   = Math.floor(s / 60);
   const sec = s % 60;
   return m > 0
     ? `${m}:${String(sec).padStart(2, '0')}`
@@ -222,7 +256,6 @@ function placeMines(board, rows, cols, mines, safeRow, safeCol) {
   while (placed < mines) {
     const r = Math.floor(Math.random() * rows);
     const c = Math.floor(Math.random() * cols);
-    // Safety zone: 3x3 area around first click
     if (board[r][c].mine) continue;
     if (Math.abs(r - safeRow) <= 1 && Math.abs(c - safeCol) <= 1) continue;
     board[r][c].mine = true;
@@ -249,9 +282,9 @@ function calcAdjacent(board, rows, cols) {
    Rendering
    ======================== */
 function calcCellSize(cols) {
-  // 전체 수평 여백: board-container(margin 8+8, padding 8+8) + board-scroll(padding 8+8) = 48px
+  // Usable width: screen minus board-container padding (8+8) and board-scroll padding (8+8)
   const usableWidth = Math.min(window.innerWidth, 480) - 48;
-  const gap = (cols - 1) * 3;
+  const gap  = (cols - 1) * 3;
   const size = Math.floor((usableWidth - gap) / cols);
   return Math.max(20, Math.min(size, 44));
 }
@@ -266,7 +299,7 @@ function renderBoard() {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cell = board[r][c];
-      const el = document.createElement('button');
+      const el   = document.createElement('button');
       el.className = 'cell';
       el.style.width = `${cellSize}px`;
       el.dataset.r = r;
@@ -305,24 +338,22 @@ function getCellEl(r, c) {
 }
 
 /* ========================
-   Cell Events (Touch & Mouse)
+   Cell Events
    ======================== */
 function attachCellEvents(el) {
-  // Long press for flag (touch)
   el.addEventListener('touchstart', onTouchStart, { passive: true });
-  el.addEventListener('touchend', onTouchEnd, { passive: true });
-  el.addEventListener('touchmove', onTouchMove, { passive: true });
-  // Mouse
-  el.addEventListener('mousedown', onMouseDown);
-  el.addEventListener('contextmenu', onContextMenu);
+  el.addEventListener('touchend',   onTouchEnd,   { passive: true });
+  el.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  el.addEventListener('mousedown',  onMouseDown);
+  el.addEventListener('contextmenu', e => e.preventDefault());
 }
 
 function onTouchStart(e) {
   const el = e.currentTarget;
-  state.longPressCell = el;
+  state.longPressCell  = el;
   state.longPressTimer = setTimeout(() => {
     state.longPressTimer = null;
-    state.longPressCell = null;
+    state.longPressCell  = null;
     handleFlag(parseInt(el.dataset.r), parseInt(el.dataset.c));
     vibrate(30);
   }, 450);
@@ -342,28 +373,17 @@ function onTouchMove() {
   if (state.longPressTimer) {
     clearTimeout(state.longPressTimer);
     state.longPressTimer = null;
-    state.longPressCell = null;
+    state.longPressCell  = null;
   }
 }
 
 function onMouseDown(e) {
-  if (e.button === 0) {
-    handleCellTap(parseInt(e.currentTarget.dataset.r), parseInt(e.currentTarget.dataset.c));
-  } else if (e.button === 2) {
-    handleFlag(parseInt(e.currentTarget.dataset.r), parseInt(e.currentTarget.dataset.c));
-  }
-}
-
-function onContextMenu(e) {
-  e.preventDefault();
+  if (e.button === 0) handleCellTap(+e.currentTarget.dataset.r, +e.currentTarget.dataset.c);
+  if (e.button === 2) handleFlag(+e.currentTarget.dataset.r, +e.currentTarget.dataset.c);
 }
 
 function handleCellTap(r, c) {
-  if (state.mode === 'flag') {
-    handleFlag(r, c);
-  } else {
-    handleReveal(r, c);
-  }
+  state.mode === 'flag' ? handleFlag(r, c) : handleReveal(r, c);
 }
 
 /* ========================
@@ -374,7 +394,6 @@ function handleReveal(r, c) {
   const cell = state.board[r][c];
   if (cell.flagged || cell.question || cell.revealed) return;
 
-  // First click: place mines & start timer
   if (state.status === 'idle') {
     placeMines(state.board, state.rows, state.cols, state.mines, r, c);
     calcAdjacent(state.board, state.rows, state.cols);
@@ -384,7 +403,6 @@ function handleReveal(r, c) {
   }
 
   if (cell.mine) {
-    // Hit a mine!
     cell.revealed = true;
     stopTimer();
     state.status = 'lost';
@@ -395,21 +413,20 @@ function handleReveal(r, c) {
     return;
   }
 
-  // BFS flood-fill reveal
   floodReveal(r, c);
   vibrate(8);
   checkWin();
 }
 
 function floodReveal(startR, startC) {
-  const queue = [[startR, startC]];
-  const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  const queue   = [[startR, startC]];
+  const dirs    = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
   const visited = new Set();
-  let delay = 0;
+  let delay     = 0;
 
   while (queue.length > 0) {
     const [r, c] = queue.shift();
-    const key = `${r},${c}`;
+    const key    = `${r},${c}`;
     if (visited.has(key)) continue;
     visited.add(key);
 
@@ -417,7 +434,7 @@ function floodReveal(startR, startC) {
     if (cell.revealed || cell.flagged || cell.mine) continue;
 
     cell.revealed = true;
-    cell.flagged = false;
+    cell.flagged  = false;
     state.revealed++;
 
     const el = getCellEl(r, c);
@@ -437,9 +454,7 @@ function floodReveal(startR, startC) {
     if (cell.adjacent === 0) {
       for (const [dr, dc] of dirs) {
         const nr = r + dr, nc = c + dc;
-        if (nr >= 0 && nr < state.rows && nc >= 0 && nc < state.cols) {
-          queue.push([nr, nc]);
-        }
+        if (nr >= 0 && nr < state.rows && nc >= 0 && nc < state.cols) queue.push([nr, nc]);
       }
     }
   }
@@ -447,7 +462,7 @@ function floodReveal(startR, startC) {
 
 function handleFlag(r, c) {
   if (state.status === 'won' || state.status === 'lost') return;
-  if (state.status === 'idle') return; // can't flag before first reveal
+  if (state.status === 'idle') return;
   const cell = state.board[r][c];
   if (cell.revealed) return;
 
@@ -457,7 +472,7 @@ function handleFlag(r, c) {
     cell.flagged = true;
     state.flagCount++;
   } else if (cell.flagged) {
-    cell.flagged = false;
+    cell.flagged  = false;
     cell.question = true;
     state.flagCount--;
   } else {
@@ -465,7 +480,7 @@ function handleFlag(r, c) {
   }
 
   updateCellEl(el, cell);
-  updateFlagCount();
+  dom.flagCount.textContent = state.flagCount;
   vibrate(15);
 }
 
@@ -474,7 +489,7 @@ function revealAllMines(hitR, hitC) {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cell = board[r][c];
-      const el = getCellEl(r, c);
+      const el   = getCellEl(r, c);
       if (!el) continue;
 
       if (r === hitR && c === hitC) {
@@ -482,7 +497,6 @@ function revealAllMines(hitR, hitC) {
         updateCellEl(el, cell);
         el.classList.add('mine-hit');
       } else if (cell.mine && !cell.flagged) {
-        // Animate with delay
         const delay = Math.random() * 400;
         setTimeout(() => {
           cell.revealed = true;
@@ -490,13 +504,11 @@ function revealAllMines(hitR, hitC) {
           el.classList.add('mine-revealed');
         }, delay);
       } else if (!cell.mine && cell.flagged) {
-        // Wrong flag — show X
         el.textContent = '❌';
       }
     }
   }
 
-  // Shake board
   setTimeout(() => {
     dom.board.classList.add('shake');
     setTimeout(() => dom.board.classList.remove('shake'), 500);
@@ -505,24 +517,13 @@ function revealAllMines(hitR, hitC) {
 
 function checkWin() {
   const { rows, cols, mines, revealed } = state;
-  const totalSafe = rows * cols - mines;
-  if (revealed >= totalSafe) {
+  if (revealed >= rows * cols - mines) {
     state.status = 'won';
     stopTimer();
     dom.resetIcon.textContent = '🥳';
     vibrate([50, 30, 50, 30, 100]);
-    // Auto-flag remaining mines
     autoFlagMines();
     const isNew = saveRecord(state.difficulty, state.elapsedSeconds);
-    renderRecords();
-    if (isNew) {
-      const el = document.getElementById(`record-${state.difficulty}`);
-      el.classList.add('new-record');
-    }
-    // Add NEW badge to the just-saved entry in scoreboard if visible
-    if (dom.recordsPanel && !dom.recordsPanel.hidden) {
-      renderScoreboard(scoreboardDiff);
-    }
     setTimeout(() => showOverlay(true, isNew), 600);
   }
 }
@@ -540,20 +541,16 @@ function autoFlagMines() {
       }
     }
   }
-  updateFlagCount();
-}
-
-/* ========================
-   UI Updates
-   ======================== */
-function updateFlagCount() {
   dom.flagCount.textContent = state.flagCount;
 }
 
+/* ========================
+   Overlay
+   ======================== */
 function showOverlay(won, isNewRecord = false) {
   const cfg = DIFFICULTIES[state.difficulty];
-  dom.overlayEmoji.textContent = won ? '🎉' : '💥';
-  dom.overlayTitle.textContent = won ? '클리어!' : '게임 오버';
+  dom.overlayEmoji.textContent    = won ? '🎉' : '💥';
+  dom.overlayTitle.textContent    = won ? '클리어!' : '게임 오버';
   dom.overlaySubtitle.textContent = won
     ? (isNewRecord ? '🏆 새 최고 기록!' : `${cfg.label} 완료!`)
     : '지뢰를 밟았어요!';
@@ -592,17 +589,17 @@ function newGame(difficulty) {
   const cfg = DIFFICULTIES[difficulty];
   stopTimer();
 
-  state.board = initBoard(cfg.rows, cfg.cols);
-  state.rows = cfg.rows;
-  state.cols = cfg.cols;
-  state.mines = cfg.mines;
-  state.flagCount = 0;
-  state.revealed = 0;
-  state.status = 'idle';
-  state.startTime = null;
+  state.board         = initBoard(cfg.rows, cfg.cols);
+  state.rows          = cfg.rows;
+  state.cols          = cfg.cols;
+  state.mines         = cfg.mines;
+  state.flagCount     = 0;
+  state.revealed      = 0;
+  state.status        = 'idle';
+  state.startTime     = null;
   state.elapsedSeconds = 0;
 
-  dom.timer.textContent = '000';
+  dom.timer.textContent     = '000';
   dom.resetIcon.textContent = '😊';
   dom.flagCount.textContent = '0';
   dom.totalMines.textContent = cfg.mines;
@@ -634,9 +631,7 @@ function setMode(mode) {
    ======================== */
 function vibrate(pattern) {
   if (!state.vibration) return;
-  if ('vibrate' in navigator) {
-    navigator.vibrate(pattern);
-  }
+  if ('vibrate' in navigator) navigator.vibrate(pattern);
 }
 
 /* ========================
@@ -672,21 +667,92 @@ function applyTheme(theme) {
 }
 
 /* ========================
+   Home page difficulty selection
+   ======================== */
+let selectedDifficulty = 'easy';
+
+function selectHomeDiff(diff) {
+  selectedDifficulty = diff;
+  document.querySelectorAll('.home-diff-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.difficulty === diff);
+  });
+}
+
+/* ========================
    Event Listeners
    ======================== */
-// Difficulty tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
+
+// Home — difficulty grid
+document.querySelectorAll('.home-diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => selectHomeDiff(btn.dataset.difficulty));
+});
+
+// Home — play button
+dom.homePlayBtn.addEventListener('click', () => {
+  newGame(selectedDifficulty);
+  // Sync the game-page difficulty tab
+  document.querySelectorAll('.gdiff-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.difficulty === selectedDifficulty)
+  );
+  navigateTo('game');
+  vibrate(10);
+});
+
+// Home — records button
+dom.homeRecordsBtn.addEventListener('click', () => {
+  navigateTo('records');
+  vibrate(8);
+});
+
+// Game — back button
+dom.gameBackBtn.addEventListener('click', () => {
+  navigateTo('home');
+  vibrate(8);
+});
+
+// Game — difficulty tabs
+document.querySelectorAll('.gdiff-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.gdiff-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    selectHomeDiff(btn.dataset.difficulty); // keep home in sync
     newGame(btn.dataset.difficulty);
+    vibrate(8);
   });
 });
 
-// Reset button
+// Game — reset button
 dom.resetBtn.addEventListener('click', () => {
   vibrate(10);
   newGame(state.difficulty);
+});
+
+// Game — mode toggle
+dom.modeReveal.addEventListener('click', () => setMode('reveal'));
+dom.modeFlag.addEventListener('click',   () => setMode('flag'));
+
+// Records — back button
+dom.recordsBackBtn.addEventListener('click', () => {
+  navigateTo('home');
+  vibrate(8);
+});
+
+// Records — difficulty sub-tabs
+document.querySelectorAll('.scoreboard-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    renderScoreboard(btn.dataset.sdiff);
+    vibrate(8);
+  });
+});
+
+// Records — clear button
+dom.clearRecords.addEventListener('click', () => {
+  if (confirm('모든 기록을 삭제할까요?')) {
+    localStorage.removeItem(RECORDS_KEY);
+    renderScoreboard(scoreboardDiff);
+    renderHomeBests();
+    vibrate(20);
+  }
 });
 
 // Overlay
@@ -695,28 +761,21 @@ dom.overlayBtn.addEventListener('click', () => {
   newGame(state.difficulty);
 });
 dom.overlayClose.addEventListener('click', hideOverlay);
-dom.overlay.addEventListener('click', e => {
-  if (e.target === dom.overlay) hideOverlay();
-});
-
-// Mode toggle
-dom.modeReveal.addEventListener('click', () => setMode('reveal'));
-dom.modeFlag.addEventListener('click', () => setMode('flag'));
+dom.overlay.addEventListener('click', e => { if (e.target === dom.overlay) hideOverlay(); });
 
 // Settings
 dom.settingsBtn.addEventListener('click', () => {
   dom.settingsModal.classList.add('visible');
   dom.settingsModal.setAttribute('aria-hidden', 'false');
 });
-dom.settingsClose.addEventListener('click', closeSettings);
-dom.settingsModal.addEventListener('click', e => {
-  if (e.target === dom.settingsModal) closeSettings();
-});
 
 function closeSettings() {
   dom.settingsModal.classList.remove('visible');
   dom.settingsModal.setAttribute('aria-hidden', 'true');
 }
+
+dom.settingsClose.addEventListener('click', closeSettings);
+dom.settingsModal.addEventListener('click', e => { if (e.target === dom.settingsModal) closeSettings(); });
 
 dom.vibrationToggle.addEventListener('change', () => {
   state.vibration = dom.vibrationToggle.checked;
@@ -738,55 +797,25 @@ document.querySelectorAll('.theme-swatch').forEach(btn => {
   });
 });
 
-dom.clearRecords.addEventListener('click', () => {
-  if (confirm('모든 기록을 삭제할까요?')) {
-    localStorage.removeItem(RECORDS_KEY);
-    renderRecords();
-    renderScoreboard(scoreboardDiff);
-    vibrate(20);
-  }
-});
-
-// View toggle
-dom.viewGameTab.addEventListener('click', () => setView('game'));
-dom.viewRecordsTab.addEventListener('click', () => setView('records'));
-
-// Scoreboard difficulty sub-tabs
-document.querySelectorAll('.scoreboard-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    renderScoreboard(btn.dataset.sdiff);
-    vibrate(8);
-  });
-});
-
-document.getElementById('viewRecordsTab').addEventListener('click', () => {
-    document.querySelectorAll('.difficulty-tabs').forEach(target => {
-        target.style.display = 'none';
-    });
-});
-
-document.getElementById('viewGameTab').addEventListener('click', () => {
-    document.querySelectorAll('.difficulty-tabs').forEach(target => {
-        target.style.display = 'flex';
-    });
-});
-
-// Prevent page zoom on double tap
+// Prevent double-tap zoom
 document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
 
-// Keyboard shortcuts (desktop)
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
-  if (e.key === 'r' || e.key === 'R') newGame(state.difficulty);
-  if (e.key === 'f' || e.key === 'F') setMode(state.mode === 'reveal' ? 'flag' : 'reveal');
-  if (e.key === '1') { document.getElementById('tab-easy').click(); }
-  if (e.key === '2') { document.getElementById('tab-medium').click(); }
-  if (e.key === '3') { document.getElementById('tab-hard').click(); }
+  if (currentPage === 'game') {
+    if (e.key === 'r' || e.key === 'R') newGame(state.difficulty);
+    if (e.key === 'f' || e.key === 'F') setMode(state.mode === 'reveal' ? 'flag' : 'reveal');
+    if (e.key === 'Escape') navigateTo('home');
+    if (e.key === '1') document.getElementById('tab-easy').click();
+    if (e.key === '2') document.getElementById('tab-medium').click();
+    if (e.key === '3') document.getElementById('tab-hard').click();
+  }
+  if (currentPage !== 'home' && e.key === 'Escape') navigateTo('home');
 });
 
 /* ========================
    Init
    ======================== */
 loadSettings();
-renderRecords();
-renderScoreboard('easy');
-newGame('easy');
+renderHomeBests();
+newGame('easy'); // pre-build board so it's ready when play is pressed
