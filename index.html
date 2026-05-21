@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="모바일 최적화 지뢰찾기 게임 - 터치로 즐기는 클래식 마인스위퍼" />
+  <meta name="theme-color" content="#0f0c29" />
+  <title>💣 지뢰찾기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">💣</span>
+          <span class="logo-text">지뢰찾기</span>
+        </div>
+        <button class="settings-btn" id="settingsBtn" aria-label="설정">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item" id="mineCounter">
+        <span class="stat-icon">🚩</span>
+        <span class="stat-value" id="flagCount">0</span>
+        <span class="stat-label">/ <span id="totalMines">0</span></span>
+      </div>
+      <button class="reset-btn" id="resetBtn" aria-label="새 게임">
+        <span class="reset-icon" id="resetIcon">😊</span>
+      </button>
+      <div class="stat-item">
+        <span class="stat-icon">⏱️</span>
+        <span class="stat-value" id="timer">000</span>
+      </div>
+    </div>
+
+    <!-- Difficulty Tabs -->
+    <div class="difficulty-tabs">
+      <button class="tab-btn active" id="tab-easy" data-difficulty="easy">초급</button>
+      <button class="tab-btn" id="tab-medium" data-difficulty="medium">중급</button>
+      <button class="tab-btn" id="tab-hard" data-difficulty="hard">고급</button>
+    </div>
+
+    <!-- View Toggle: 게임 / 기록 -->
+    <div class="view-toggle-bar">
+      <button class="view-tab active" id="viewGameTab">🎮 게임</button>
+      <button class="view-tab" id="viewRecordsTab">🏆 기록</button>
+    </div>
+
+    <!-- ══ GAME VIEW ══ -->
+    <div id="gameView">
+      <!-- Mode Toggle -->
+      <div class="mode-toggle-wrapper">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="modeReveal" aria-label="열기 모드">
+            <span>👆</span> 열기
+          </button>
+          <div class="mode-slider" id="modeSlider"></div>
+          <button class="mode-btn" id="modeFlag" aria-label="깃발 모드">
+            <span>🚩</span> 깃발
+          </button>
+        </div>
+        <span class="mode-hint" id="modeHint">탭: 열기 / 길게 탭: 깃발</span>
+      </div>
+
+      <!-- Game Board -->
+      <main class="board-container">
+        <div class="board-scroll">
+          <div class="board" id="board" role="grid" aria-label="지뢰찾기 게임판"></div>
+        </div>
+      </main>
+
+      <!-- Mini Best Records -->
+      <section class="records-section">
+        <h2 class="records-title">🏆 최고 기록</h2>
+        <div class="records-grid">
+          <div class="record-item">
+            <span class="record-level">초급</span>
+            <span class="record-time" id="record-easy">--</span>
+          </div>
+          <div class="record-item">
+            <span class="record-level">중급</span>
+            <span class="record-time" id="record-medium">--</span>
+          </div>
+          <div class="record-item">
+            <span class="record-level">고급</span>
+            <span class="record-time" id="record-hard">--</span>
+          </div>
+        </div>
+      </section>
+    </div><!-- end #gameView -->
+
+    <!-- ══ RECORDS VIEW ══ -->
+    <div id="recordsPanel" class="records-panel" hidden>
+      <!-- Scoreboard difficulty sub-tabs -->
+      <div class="scoreboard-tabs">
+        <button class="scoreboard-tab active" data-sdiff="easy" id="stab-easy">초급</button>
+        <button class="scoreboard-tab" data-sdiff="medium" id="stab-medium">중급</button>
+        <button class="scoreboard-tab" data-sdiff="hard" id="stab-hard">고급</button>
+      </div>
+
+      <!-- Empty state -->
+      <div class="scoreboard-empty" id="scoreboardEmpty" hidden>
+        <div class="empty-icon">🏆</div>
+        <p class="empty-text">아직 기록이 없어요<br>게임을 플레이해보세요!</p>
+      </div>
+
+      <!-- Scoreboard list -->
+      <ol class="scoreboard-list" id="scoreboardList" aria-label="순위 목록"></ol>
+    </div><!-- end #recordsPanel -->
+
+  </div>
+
+  <!-- Overlay: Win/Lose -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="overlay-card" id="overlayCard">
+      <div class="overlay-emoji" id="overlayEmoji"></div>
+      <h2 class="overlay-title" id="overlayTitle"></h2>
+      <p class="overlay-subtitle" id="overlaySubtitle"></p>
+      <div class="overlay-stats" id="overlayStats"></div>
+      <button class="overlay-btn" id="overlayBtn">다시 시작</button>
+      <button class="overlay-close" id="overlayClose">✕</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal" aria-hidden="true">
+    <div class="settings-card">
+      <div class="settings-header">
+        <h3>⚙️ 설정</h3>
+        <button class="settings-close" id="settingsClose">✕</button>
+      </div>
+      <div class="settings-body">
+        <label class="settings-label">
+          <span>진동 피드백</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="vibrationToggle" checked />
+            <span class="toggle-track"></span>
+          </div>
+        </label>
+        <label class="settings-label">
+          <span>애니메이션</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="animationToggle" checked />
+            <span class="toggle-track"></span>
+          </div>
+        </label>
+        <div class="settings-label">
+          <span>색상 테마</span>
+          <div class="theme-options">
+            <button class="theme-swatch active" data-theme="purple" style="background: linear-gradient(135deg,#7c3aed,#2563eb)" id="theme-purple"></button>
+            <button class="theme-swatch" data-theme="teal" style="background: linear-gradient(135deg,#0d9488,#0ea5e9)" id="theme-teal"></button>
+            <button class="theme-swatch" data-theme="rose" style="background: linear-gradient(135deg,#e11d48,#f97316)" id="theme-rose"></button>
+            <button class="theme-swatch" data-theme="dark" style="background: linear-gradient(135deg,#1e293b,#334155)" id="theme-dark"></button>
+          </div>
+        </div>
+        <button class="clear-records-btn" id="clearRecords">기록 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
