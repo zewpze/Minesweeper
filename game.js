@@ -759,6 +759,18 @@ document.querySelectorAll('.scoreboard-tab').forEach(btn => {
   });
 });
 
+document.getElementById('viewRecordsTab').addEventListener('click', () => {
+    document.querySelectorAll('.difficulty-tabs').forEach(target => {
+        target.style.display = 'none';
+    });
+});
+
+document.getElementById('viewGameTab').addEventListener('click', () => {
+    document.querySelectorAll('.difficulty-tabs').forEach(target => {
+        target.style.display = 'flex';
+    });
+});
+
 // Prevent page zoom on double tap
 document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
 

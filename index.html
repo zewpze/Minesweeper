@@ -18,7 +18,7 @@
       <div class="header-content">
         <div class="logo">
           <span class="logo-icon">💣</span>
-          <span class="logo-text">지뢰찾기</span>
+          <span class="logo-text">Z뢰찾기</span>
         </div>
         <button class="settings-btn" id="settingsBtn" aria-label="설정">⚙️</button>
       </div>
@@ -40,19 +40,6 @@
       </div>
     </div>
 
-    <!-- Difficulty Tabs -->
-    <div class="difficulty-tabs">
-      <button class="tab-btn active" id="tab-easy" data-difficulty="easy">초급</button>
-      <button class="tab-btn" id="tab-medium" data-difficulty="medium">중급</button>
-      <button class="tab-btn" id="tab-hard" data-difficulty="hard">고급</button>
-    </div>
-
-    <!-- View Toggle: 게임 / 기록 -->
-    <div class="view-toggle-bar">
-      <button class="view-tab active" id="viewGameTab">🎮 게임</button>
-      <button class="view-tab" id="viewRecordsTab">🏆 기록</button>
-    </div>
-
     <!-- ══ GAME VIEW ══ -->
     <div id="gameView">
       <!-- Mode Toggle -->
@@ -66,7 +53,6 @@
             <span>🚩</span> 깃발
           </button>
         </div>
-        <span class="mode-hint" id="modeHint">탭: 열기 / 길게 탭: 깃발</span>
       </div>
 
       <!-- Game Board -->
@@ -94,7 +80,20 @@
           </div>
         </div>
       </section>
+      
     </div><!-- end #gameView -->
+    <!-- Difficulty Tabs -->
+    <div class="difficulty-tabs">
+      <button class="tab-btn active" id="tab-easy" data-difficulty="easy">초급</button>
+      <button class="tab-btn" id="tab-medium" data-difficulty="medium">중급</button>
+      <button class="tab-btn" id="tab-hard" data-difficulty="hard">고급</button>
+    </div>
+
+    <!-- View Toggle: 게임 / 기록 -->
+    <div class="view-toggle-bar">
+      <button class="view-tab active" id="viewGameTab">🎮 게임</button>
+      <button class="view-tab" id="viewRecordsTab">🏆 기록</button>
+    </div>
 
     <!-- ══ RECORDS VIEW ══ -->
     <div id="recordsPanel" class="records-panel" hidden>
@@ -114,6 +113,7 @@
       <!-- Scoreboard list -->
       <ol class="scoreboard-list" id="scoreboardList" aria-label="순위 목록"></ol>
     </div><!-- end #recordsPanel -->
+
 
   </div>
 
@@ -156,7 +156,6 @@
           <div class="theme-options">
             <button class="theme-swatch active" data-theme="purple" style="background: linear-gradient(135deg,#7c3aed,#2563eb)" id="theme-purple"></button>
             <button class="theme-swatch" data-theme="teal" style="background: linear-gradient(135deg,#0d9488,#0ea5e9)" id="theme-teal"></button>
-            <button class="theme-swatch" data-theme="rose" style="background: linear-gradient(135deg,#e11d48,#f97316)" id="theme-rose"></button>
             <button class="theme-swatch" data-theme="dark" style="background: linear-gradient(135deg,#1e293b,#334155)" id="theme-dark"></button>
           </div>
         </div>
