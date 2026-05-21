@@ -376,11 +376,11 @@ body::before {
 
 .game-header {
   flex-shrink: 0;
-  padding: 10px 4px 6px;
+  padding: 4px 10px;
   background: linear-gradient(to bottom, var(--bg-deep) 85%, transparent);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* Back button */
@@ -388,8 +388,8 @@ body::before {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   font-size: 1.4rem;
   font-weight: 300;
@@ -409,7 +409,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 20px;
+  padding: 4px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -425,36 +425,36 @@ body::before {
 
 .game-stat.right { justify-content: flex-end; }
 
-.game-stat-icon  { font-size: 1rem; }
+.game-stat-icon  { font-size: 0.8rem; }
 .game-stat-value {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 .game-stat-slash {
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   color: var(--text-secondary);
 }
 
 .reset-btn {
   background: var(--accent-gradient);
   border: none;
-  width: 48px;
-  height: 48px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+  box-shadow: 0 4px 15px rgba(124,58,237,0.5);
   transition: transform 0.15s ease;
 }
 
 .reset-btn:active { transform: scale(0.91); }
 
 .reset-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   line-height: 1;
   display: block;
   transition: transform 0.3s ease;
@@ -496,12 +496,13 @@ body::before {
 
 /* Mode toggle row */
 .mode-row {
+  width: 80px;
   flex-shrink: 0;
-  padding: 6px 8px 8px;
+  padding: 4px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 2px;
 }
 
 .mode-toggle {
@@ -509,7 +510,7 @@ body::before {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 50px;
-  padding: 3px;
+  padding: 2px;
   position: relative;
 }
 
@@ -517,7 +518,7 @@ body::before {
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 6px 16px;
+  padding: 4px 8px;
   border: none;
   border-radius: 50px;
   background: transparent;
@@ -574,7 +575,7 @@ body::before {
 
 .board {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -592,7 +593,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   font-family: 'Outfit', monospace;
   background: var(--cell-unrevealed);
@@ -633,7 +634,7 @@ body::before {
 
 .cell.flagged::after {
   content: '🚩';
-  font-size: 0.9em;
+  font-size: 0.8em;
   animation: placeFlag 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -644,7 +645,7 @@ body::before {
 
 .cell.question::after {
   content: '❓';
-  font-size: 0.85em;
+  font-size: 0.8em;
   animation: placeFlag 0.2s ease;
 }
 

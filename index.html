@@ -98,6 +98,18 @@
           <span class="game-stat-value" id="flagCount">0</span>
           <span class="game-stat-slash">/ <span id="totalMines">0</span></span>
         </div>
+        <!-- Mode Toggle -->
+        <div class="mode-row">
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeReveal" aria-label="열기 모드">
+              <span>👆</span>
+            </button>
+            <div class="mode-slider" id="modeSlider"></div>
+            <button class="mode-btn" id="modeFlag" aria-label="깃발 모드">
+              <span>🚩</span>
+            </button>
+          </div>
+        </div>
         <button class="reset-btn" id="resetBtn" aria-label="새 게임">
           <span class="reset-icon" id="resetIcon">😊</span>
         </button>
@@ -107,19 +119,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Mode Toggle -->
-    <div class="mode-row">
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="modeReveal" aria-label="열기 모드">
-          <span>👆</span> 열기
-        </button>
-        <div class="mode-slider" id="modeSlider"></div>
-        <button class="mode-btn" id="modeFlag" aria-label="깃발 모드">
-          <span>🚩</span> 깃발
-        </button>
-      </div>
-    </div>
 
     <!-- Board fills remaining space -->
     <main class="board-container">

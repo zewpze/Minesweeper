@@ -27,8 +27,6 @@ let state = {
   mode:           'reveal', // reveal | flag
   vibration:      true,
   animation:      true,
-  longPressTimer: null,
-  longPressCell:  null,
 };
 
 /* ========================
@@ -348,33 +346,21 @@ function attachCellEvents(el) {
   el.addEventListener('contextmenu', e => e.preventDefault());
 }
 
-function onTouchStart(e) {
-  const el = e.currentTarget;
-  state.longPressCell  = el;
-  state.longPressTimer = setTimeout(() => {
-    state.longPressTimer = null;
-    state.longPressCell  = null;
-    handleFlag(parseInt(el.dataset.r), parseInt(el.dataset.c));
-    vibrate(30);
-  }, 450);
+// Track whether finger moved (to distinguish tap from scroll)
+let touchMoved = false;
+
+function onTouchStart() {
+  touchMoved = false;
 }
 
 function onTouchEnd(e) {
+  if (touchMoved) return; // ignore if finger scrolled
   const el = e.currentTarget;
-  if (state.longPressTimer) {
-    clearTimeout(state.longPressTimer);
-    state.longPressTimer = null;
-    handleCellTap(parseInt(el.dataset.r), parseInt(el.dataset.c));
-  }
-  state.longPressCell = null;
+  handleCellTap(parseInt(el.dataset.r), parseInt(el.dataset.c));
 }
 
 function onTouchMove() {
-  if (state.longPressTimer) {
-    clearTimeout(state.longPressTimer);
-    state.longPressTimer = null;
-    state.longPressCell  = null;
-  }
+  touchMoved = true;
 }
 
 function onMouseDown(e) {
@@ -617,12 +603,10 @@ function setMode(mode) {
     dom.modeReveal.classList.add('active');
     dom.modeFlag.classList.remove('active');
     dom.modeSlider.classList.remove('flag-mode');
-    dom.modeHint.textContent = '탭: 열기 / 길게 탭: 깃발';
   } else {
     dom.modeFlag.classList.add('active');
     dom.modeReveal.classList.remove('active');
     dom.modeSlider.classList.add('flag-mode');
-    dom.modeHint.textContent = '탭: 깃발 / 길게 탭: 열기';
   }
 }
 
